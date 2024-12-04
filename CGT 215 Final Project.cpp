@@ -19,15 +19,12 @@ sf::Vector2f gravity(0, 0.1f);
 
 std::vector<sf::RectangleShape> cubeFaces[6];
 
-
 sf::CircleShape player(20.0f);
 sf::Vector2f playerVelocity(0.0f, 0.0f);
 const float playerSpeed = 2.0f;
 
-
 sf::CircleShape goal(15.0f);
 sf::Vector2f goalPosition;
-
 
 struct Obstacle {
     sf::CircleShape shape;
@@ -36,7 +33,6 @@ struct Obstacle {
 
 std::vector<Obstacle> obstacles;
 const int NUM_OBSTACLES = 3;
-
 
 int score = 0;
 
@@ -120,7 +116,6 @@ void moveObstacles() {
     for (auto& obstacle : obstacles) {
         obstacle.shape.move(obstacle.velocity);
 
-
         sf::Vector2f pos = obstacle.shape.getPosition();
         if (pos.x <= 0 || pos.x + obstacle.shape.getRadius() * 2 >= WINDOW_WIDTH) {
             obstacle.velocity.x = -obstacle.velocity.x;
@@ -131,32 +126,38 @@ void moveObstacles() {
     }
 }
 
-void handleCollision() {
+void resetObstacles() {
+    for (auto& obstacle : obstacles) {
+        obstacle.shape.setPosition(rand() % (WINDOW_WIDTH - 30), rand() % (WINDOW_HEIGHT - 30));
+        obstacle.velocity.x = (rand() % 3 - 1) * 2.0f;
+        obstacle.velocity.y = (rand() % 3 - 1) * 2.0f;
+    }
+}
 
+void handleCollision() {
     for (auto& cell : cubeFaces[currentFace]) {
         if (player.getGlobalBounds().intersects(cell.getGlobalBounds())) {
             playerVelocity = -playerVelocity * 0.5f;
         }
     }
 
-
     if (player.getGlobalBounds().intersects(goal.getGlobalBounds())) {
         score += 100;
         currentFace = (currentFace + 1) % 6;
         resetPlayerPosition();
         setGoalPosition();
+        resetObstacles();  // Randomize obstacle positions on level change
     }
 
- 
     for (auto& obstacle : obstacles) {
         if (player.getGlobalBounds().intersects(obstacle.shape.getGlobalBounds())) {
             score = 0;
             resetPlayerPosition();
             setGoalPosition();
+            resetObstacles();  // Randomize obstacle positions on collision
         }
     }
 
-   
     sf::Vector2f pos = player.getPosition();
     if (pos.x < 0 || pos.x + player.getRadius() * 2 > MAZE_SIZE * CELL_SIZE ||
         pos.y < 0 || pos.y + player.getRadius() * 2 > MAZE_SIZE * CELL_SIZE) {
@@ -164,11 +165,11 @@ void handleCollision() {
         currentFace = (currentFace + 1) % 6;
         resetPlayerPosition();
         setGoalPosition();
+        resetObstacles();  // Randomize obstacle positions on level change
     }
 }
 
 int main() {
-
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Gravity Cube Maze");
     window.setFramerateLimit(60);
 
@@ -182,7 +183,6 @@ int main() {
         obstacle.shape.setFillColor(sf::Color::Yellow);
         obstacle.shape.setPosition(rand() % (WINDOW_WIDTH - 30), rand() % (WINDOW_HEIGHT - 30));
 
-
         obstacle.velocity.x = (rand() % 3 - 1) * 2.0f;
         obstacle.velocity.y = (rand() % 3 - 1) * 2.0f;
 
@@ -194,7 +194,6 @@ int main() {
         std::cerr << "Error loading font!" << std::endl;
         return -1;
     }
-
 
     while (window.isOpen()) {
         sf::Event event;
@@ -215,19 +214,15 @@ int main() {
 
         window.clear(sf::Color::Blue);
 
-
         for (const auto& cell : cubeFaces[currentFace]) {
             window.draw(cell);
         }
 
-
         goal.setFillColor(sf::Color::Green);
         window.draw(goal);
 
-
         player.setFillColor(sf::Color::Red);
         window.draw(player);
-
 
         for (const auto& obstacle : obstacles) {
             window.draw(obstacle.shape);
@@ -244,6 +239,7 @@ int main() {
     }
     return 0;
 }
+
 
 
 
