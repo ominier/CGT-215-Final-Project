@@ -51,28 +51,50 @@ void setupCubeFaces() {
     }
 }
 
-void resetPlayerPosition() {
-    switch (currentFace) {
-    case 0:  // Top face
-        player.setPosition(CELL_SIZE, CELL_SIZE);
-        break;
-    case 1:  // Bottom face
-        player.setPosition(CELL_SIZE, CELL_SIZE);
-        break;
-    case 2:  // Left face
-        player.setPosition(CELL_SIZE, CELL_SIZE);
-        break;
-    case 3:  // Right face
-        player.setPosition(CELL_SIZE, CELL_SIZE);
-        break;
-    case 4:  // Front face
-        player.setPosition(CELL_SIZE, CELL_SIZE);
-        break;
-    case 5:  // Back face
-        player.setPosition(CELL_SIZE, CELL_SIZE);
-        break;
+bool checkCollisionWithObstacles(const sf::CircleShape& playerShape) {
+    for (const auto& obstacle : obstacles) {
+        if (playerShape.getGlobalBounds().intersects(obstacle.shape.getGlobalBounds())) {
+            return true;
+        }
     }
-    playerVelocity = sf::Vector2f(0, 0);
+    return false;
+}
+
+void resetPlayerPosition() {
+    bool validPosition = false;
+
+    while (!validPosition) {
+        switch (currentFace) {
+        case 0:  // Top face
+            player.setPosition(CELL_SIZE, CELL_SIZE);
+            break;
+        case 1:  // Bottom face
+            player.setPosition(CELL_SIZE, CELL_SIZE);
+            break;
+        case 2:  // Left face
+            player.setPosition(CELL_SIZE, CELL_SIZE);
+            break;
+        case 3:  // Right face
+            player.setPosition(CELL_SIZE, CELL_SIZE);
+            break;
+        case 4:  // Front face
+            player.setPosition(CELL_SIZE, CELL_SIZE);
+            break;
+        case 5:  // Back face
+            player.setPosition(CELL_SIZE, CELL_SIZE);
+            break;
+        }
+        playerVelocity = sf::Vector2f(0, 0);
+
+        // Check for collision with obstacles and adjust spawn if needed
+        if (!checkCollisionWithObstacles(player)) {
+            validPosition = true;
+        }
+        else {
+            // Randomize the position again if there's a collision
+            player.setPosition(rand() % (WINDOW_WIDTH - 30), rand() % (WINDOW_HEIGHT - 30));
+        }
+    }
 }
 
 void setGoalPosition() {
@@ -129,8 +151,8 @@ void moveObstacles() {
 void resetObstacles() {
     for (auto& obstacle : obstacles) {
         obstacle.shape.setPosition(rand() % (WINDOW_WIDTH - 30), rand() % (WINDOW_HEIGHT - 30));
-        obstacle.velocity.x = (rand() % 3 - 1) * 2.0f;
-        obstacle.velocity.y = (rand() % 3 - 1) * 2.0f;
+        obstacle.velocity.x = (rand() % 3 - 1) * 1.0f;  // Slower speed
+        obstacle.velocity.y = (rand() % 3 - 1) * 1.0f;  // Slower speed
     }
 }
 
@@ -146,7 +168,7 @@ void handleCollision() {
         currentFace = (currentFace + 1) % 6;
         resetPlayerPosition();
         setGoalPosition();
-        resetObstacles();  // Randomize obstacle positions on level change
+        resetObstacles();
     }
 
     for (auto& obstacle : obstacles) {
@@ -154,7 +176,7 @@ void handleCollision() {
             score = 0;
             resetPlayerPosition();
             setGoalPosition();
-            resetObstacles();  // Randomize obstacle positions on collision
+            resetObstacles();
         }
     }
 
@@ -165,7 +187,7 @@ void handleCollision() {
         currentFace = (currentFace + 1) % 6;
         resetPlayerPosition();
         setGoalPosition();
-        resetObstacles();  // Randomize obstacle positions on level change
+        resetObstacles();
     }
 }
 
@@ -183,8 +205,8 @@ int main() {
         obstacle.shape.setFillColor(sf::Color::Yellow);
         obstacle.shape.setPosition(rand() % (WINDOW_WIDTH - 30), rand() % (WINDOW_HEIGHT - 30));
 
-        obstacle.velocity.x = (rand() % 3 - 1) * 2.0f;
-        obstacle.velocity.y = (rand() % 3 - 1) * 2.0f;
+        obstacle.velocity.x = (rand() % 3 - 1) * 1.0f;  // Slower speed
+        obstacle.velocity.y = (rand() % 3 - 1) * 1.0f;  // Slower speed
 
         obstacles.push_back(obstacle);
     }
@@ -239,6 +261,10 @@ int main() {
     }
     return 0;
 }
+
+
+
+
 
 
 
